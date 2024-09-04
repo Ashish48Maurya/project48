@@ -94,7 +94,7 @@ const UploadExcel = () => {
         <div>
           <table {...getTableProps()} className="w-full mt-5 table-auto border-collapse border border-gray-300">
             <thead className="bg-orange-600 text-black">
-              
+
               {headerGroups.map((headerGroup) => (
                 <tr {...headerGroup.getHeaderGroupProps()} className="border-b-2 border-gray-200" key={headerGroup.id}>
                   {headerGroup.headers.map((column) => (
@@ -124,18 +124,19 @@ const UploadExcel = () => {
 
             </thead>
             <tbody {...getTableBodyProps()} className={`text-center ${fontsize}`}>
-              {page.map((row, i) => {
+              {page.map((row) => {
                 prepareRow(row);
                 return (
-                  <tr {...row.getRowProps()} className="border-b border-gray-200">
+                  <tr {...row.getRowProps()} className="border-b border-gray-200" key={row.id}> {/* Row key */}
                     {row.cells.map((cell) => (
-                      <td {...cell.getCellProps()} className="p-3">
+                      <td {...cell.getCellProps()} className="p-3" key={cell.column.id}> {/* Cell key */}
                         {cell.render('Cell')}
                       </td>
                     ))}
                   </tr>
                 );
               })}
+
             </tbody>
           </table>
 
