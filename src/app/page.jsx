@@ -1,13 +1,13 @@
 'use client';
 import React, { useState } from 'react';
 import * as XLSX from 'xlsx';
-import { useTable, useSortBy, usePagination } from 'react-table';
+import { useTable, useSortBy, usePagination, useFilters } from 'react-table';
 import { FaSortUp, FaSortDown, FaSort, FaChevronLeft, FaChevronRight, FaStepBackward, FaStepForward } from 'react-icons/fa';
 
 const UploadExcel = () => {
   const [data, setData] = useState([]);
   const [columns, setColumns] = useState([]);
-  const [fontsize, setFontsize] = useState("text-md")
+  const [fontsize, setFontsize] = useState("text-md");
 
   const handleFileUpload = (event) => {
     const file = event.target.files[0];
@@ -22,6 +22,7 @@ const UploadExcel = () => {
       const headers = jsonData[0].map((header) => ({
         Header: header,
         accessor: header,
+        Filter: ColumnFilter, // Add filter to each column
       }));
 
       const dateRegex = /^(\d{1,2}[-/]\d{1,2}[-/]\d{4})$/;
@@ -36,11 +37,7 @@ const UploadExcel = () => {
             cellValue = excelDate.toLocaleDateString();
           }
 
-          if (typeof cellValue === 'string' && dateRegex.test(cellValue)) {
-            rowData[col.accessor] = cellValue;
-          } else {
-            rowData[col.accessor] = cellValue;
-          }
+          rowData[col.accessor] = cellValue;
         });
         return rowData;
       });
@@ -51,8 +48,6 @@ const UploadExcel = () => {
 
     reader.readAsBinaryString(file);
   };
-
-
 
   const {
     getTableProps,
@@ -74,10 +69,10 @@ const UploadExcel = () => {
       data,
       initialState: { pageIndex: 0, pageSize: 20 },
     },
+    useFilters, // Add useFilters here
     useSortBy,
     usePagination
   );
-
 
   return (
     <div className="p-5">
@@ -94,49 +89,52 @@ const UploadExcel = () => {
         <div>
           <table {...getTableProps()} className="w-full mt-5 table-auto border-collapse border border-gray-300">
             <thead className="bg-orange-600 text-black">
-
               {headerGroups.map((headerGroup) => (
                 <tr {...headerGroup.getHeaderGroupProps()} className="border-b-2 border-gray-200" key={headerGroup.id}>
                   {headerGroup.headers.map((column) => (
                     <th
                       {...column.getHeaderProps(column.getSortByToggleProps())}
                       className="py-3 px-4 lg:px-3 cursor-pointer text-center"
-                      key={column.id} // Add key here
+                      key={column.id}
                     >
-                      <span className='flex flex-row justify-center items-center'>
-                        {column.render('Header')}
-                        <span className="ml-2 inline-block ">
-                          {column.isSorted ? (
-                            column.isSortedDesc ? (
-                              <FaSortDown />
+                      <div className="flex flex-col justify-center items-center">
+                        <span className="flex flex-row justify-center items-center">
+                          {column.render('Header')}
+                          <span className="ml-2 inline-block">
+                            {column.isSorted ? (
+                              column.isSortedDesc ? (
+                                <FaSortDown />
+                              ) : (
+                                <FaSortUp />
+                              )
                             ) : (
-                              <FaSortUp />
-                            )
-                          ) : (
-                            <FaSort />
-                          )}
+                              <FaSort />
+                            )}
+                          </span>
                         </span>
-                      </span>
+                        {/* Render the column filter */}
+                        <div onClick={(e) => e.stopPropagation()}>
+                          {column.canFilter ? column.render('Filter') : null}
+                        </div>
+                      </div>
                     </th>
                   ))}
                 </tr>
               ))}
-
             </thead>
             <tbody {...getTableBodyProps()} className={`text-center ${fontsize}`}>
               {page.map((row) => {
                 prepareRow(row);
                 return (
-                  <tr {...row.getRowProps()} className="border-b border-gray-200" key={row.id}> {/* Row key */}
+                  <tr {...row.getRowProps()} className="border-b border-gray-200" key={row.id}>
                     {row.cells.map((cell) => (
-                      <td {...cell.getCellProps()} className="p-3" key={cell.column.id}> {/* Cell key */}
+                      <td {...cell.getCellProps()} className="p-3" key={cell.column.id}>
                         {cell.render('Cell')}
                       </td>
                     ))}
                   </tr>
                 );
               })}
-
             </tbody>
           </table>
 
@@ -210,20 +208,33 @@ const UploadExcel = () => {
                 onChange={(e) => setFontsize(e.target.value)}
                 className="p-2 border border-white bg-orange-600 rounded-md focus:outline-none text-black font-semibold"
               >
-                {["text-md", "text-xl", "text-2xl"].map((size) => (
-                  <option key={size} value={size}>
-                    {size}
-                  </option>
-                ))}
+                <option value="text-sm">Small</option>
+                <option value="text-md">Medium</option>
+                <option value="text-lg">Large</option>
               </select>
             </span>
-
           </div>
         </div>
-      ) : (<div className='flex justify-center items-center text-xl lg:text-2xl text-orange-600'> Upload File </div>
+      ) : (
+        <p className="text-center font-extrabold text-3xl text-orange-600">
+          Please upload an Excel file to see the data.
+        </p>
       )}
     </div>
   );
 };
 
+// ColumnFilter component
+const ColumnFilter = ({ column: { filterValue, setFilter } }) => {
+  return (
+    <input
+      value={filterValue || ''}
+      onChange={(e) => setFilter(e.target.value || undefined)}
+      placeholder="Search..."
+      className="p-2 border border-gray-300 rounded-md focus:outline-none"
+    />
+  );
+};
+
 export default UploadExcel;
+
