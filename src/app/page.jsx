@@ -94,12 +94,14 @@ const UploadExcel = () => {
         <div>
           <table {...getTableProps()} className="w-full mt-5 table-auto border-collapse border border-gray-300">
             <thead className="bg-orange-600 text-black">
+              
               {headerGroups.map((headerGroup) => (
-                <tr {...headerGroup.getHeaderGroupProps()} className="border-b-2 border-gray-200">
+                <tr {...headerGroup.getHeaderGroupProps()} className="border-b-2 border-gray-200" key={headerGroup.id}>
                   {headerGroup.headers.map((column) => (
                     <th
                       {...column.getHeaderProps(column.getSortByToggleProps())}
-                      className=" py-3 px-4 lg:px-3 cursor-pointer text-center "
+                      className="py-3 px-4 lg:px-3 cursor-pointer text-center"
+                      key={column.id} // Add key here
                     >
                       <span className='flex flex-row justify-center items-center'>
                         {column.render('Header')}
@@ -119,6 +121,7 @@ const UploadExcel = () => {
                   ))}
                 </tr>
               ))}
+
             </thead>
             <tbody {...getTableBodyProps()} className={`text-center ${fontsize}`}>
               {page.map((row, i) => {
